@@ -46,13 +46,13 @@ plugins/<plugin_id>/
 
 ## 内置插件
 
-`plugins/builtin/` 是 SlowLink 1.1 自带的默认规则包，行为和 1.0 一致。
+`plugins/builtin/` 是 SlowLink 1.0 的默认规则插件包。
 
 ## 使用方式
 
-1. 安装 SlowLink 1.1。
+1. 安装 SlowLink 1.0。
 2. 打开网页后台 → 工具与备份 → 规则插件。
-3. 上传 `slowlink-plugin-builtin-v1.1.0.zip` 或你的专属插件包。
+3. 上传 `slowlink-plugin-builtin-v1.0.0.zip` 或你的专属插件包。
 4. 上传成功后会立即启用，无需重启容器。
 
 ## 发布
