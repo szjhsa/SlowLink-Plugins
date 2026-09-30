@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGINS = ROOT / "plugins"
 DIST = ROOT / "dist"
 PLUGIN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
+ALLOWED_GENERATOR_STRATEGIES = {"code", "lottery", "line"}
 
 
 def read_json(path: Path) -> dict:
@@ -34,6 +35,15 @@ def validate_plugin(plugin_id: str) -> dict:
     for section in ("matcher", "code_rules", "dedup", "rule_types", "rule_generator", "flow"):
         if not isinstance(rules.get(section), dict):
             raise ValueError(f"rules.json missing section: {section}")
+    generator_types = rules["rule_generator"].get("types")
+    if not isinstance(generator_types, dict):
+        raise ValueError("rule_generator.types must be an object")
+    for type_id, item in generator_types.items():
+        if not isinstance(item, dict) or not str(item.get("label") or "").strip():
+            raise ValueError(f"invalid rule generator type: {type_id}")
+        strategy = str(item.get("strategy") or "").strip().lower()
+        if strategy not in ALLOWED_GENERATOR_STRATEGIES:
+            raise ValueError(f"unsupported generator strategy: {type_id}={strategy}")
     return manifest
 
 
