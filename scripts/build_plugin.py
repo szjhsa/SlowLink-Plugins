@@ -31,7 +31,7 @@ def validate_plugin(plugin_id: str) -> dict:
         raise ValueError("plugin.json id mismatch")
     if not manifest.get("version") or not manifest.get("min_core_version"):
         raise ValueError("plugin.json missing version or min_core_version")
-    for section in ("matcher", "code_rules", "dedup", "flow"):
+    for section in ("matcher", "code_rules", "dedup", "rule_types", "rule_generator", "flow"):
         if not isinstance(rules.get(section), dict):
             raise ValueError(f"rules.json missing section: {section}")
     return manifest
