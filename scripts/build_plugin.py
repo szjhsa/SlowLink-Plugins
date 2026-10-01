@@ -89,6 +89,17 @@ def validate_plugin(plugin_id: str) -> dict:
         strategy = str(item.get("strategy") or "").strip().lower()
         if strategy not in ALLOWED_GENERATOR_STRATEGIES:
             raise ValueError(f"unsupported generator strategy: {type_id}={strategy}")
+    for python_path in base.rglob("*.py"):
+        if not python_path.is_file():
+            continue
+        try:
+            compile(
+                python_path.read_text(encoding="utf-8-sig"),
+                str(python_path),
+                "exec",
+            )
+        except SyntaxError as exc:
+            raise ValueError(f"invalid python file {python_path.name}: {exc}") from exc
     return manifest
 
 
