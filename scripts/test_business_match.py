@@ -100,5 +100,18 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
                 self.assertIsInstance(result, dict)
                 self.assertTrue(result.get("matched"))
 
+    def test_url_identity_and_content_lock_use_separate_namespaces(self):
+        code_source = (
+            ROOT / "plugins" / "builtin" / "code_rules_impl.py"
+        ).read_text(encoding="utf-8-sig")
+        storage_source = (
+            ROOT / "plugins" / "builtin" / "storage_impl.py"
+        ).read_text(encoding="utf-8-sig")
+
+        self.assertIn('(identity or "").partition(":")', code_source)
+        self.assertIn('"identity_key_prefix": "dedup:identity:"', storage_source)
+        self.assertIn('"dedup:identity:*"', storage_source)
+
+
 if __name__ == "__main__":
     unittest.main()
