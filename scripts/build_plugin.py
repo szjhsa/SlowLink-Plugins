@@ -45,6 +45,25 @@ def validate_plugin(plugin_id: str) -> dict:
             re.compile(pattern)
         except re.error as exc:
             raise ValueError(f"invalid dynamic line pattern {index}: {exc}") from exc
+    code_identity = rules.get("code_identity")
+    if code_identity is not None:
+        if not isinstance(code_identity, dict):
+            raise ValueError("code_identity must be an object")
+        mask_char = code_identity.get("mask_char", "*")
+        if not isinstance(mask_char, str) or len(mask_char) != 1:
+            raise ValueError("code_identity.mask_char must be one character")
+        mask_mode = str(code_identity.get("mask_mode") or "any_length")
+        if mask_mode not in {"exact", "any_length"}:
+            raise ValueError("code_identity.mask_mode must be exact or any_length")
+        scope_regex = code_identity.get("scope_regex")
+        if not isinstance(scope_regex, str) or not scope_regex.strip():
+            raise ValueError("code_identity.scope_regex is required")
+        try:
+            compiled = re.compile(scope_regex)
+        except re.error as exc:
+            raise ValueError(f"invalid code_identity.scope_regex: {exc}") from exc
+        if not {"scope", "suffix"}.issubset(compiled.groupindex):
+            raise ValueError("code_identity.scope_regex requires scope and suffix groups")
     generator_types = rules["rule_generator"].get("types")
     if not isinstance(generator_types, dict):
         raise ValueError("rule_generator.types must be an object")

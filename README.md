@@ -41,6 +41,7 @@ plugins/<plugin_id>/
 | `matcher` | 已使用、关闭注册、注册成功等安全过滤 |
 | `code_rules` | 内置强格式开关、默认码识别规则、正向/负向上下文 |
 | `dedup` | 活动关键词、抽奖 ID/模板、来源行提示、TTL 默认值 |
+| `code_identity` | 掩码/明文注册码的统一身份匹配、固定锚点和 TTL |
 | `flow` | 优先队列关键词 |
 | `defaults` | Redis 默认配置 |
 
