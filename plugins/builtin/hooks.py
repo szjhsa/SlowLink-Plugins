@@ -397,10 +397,6 @@ def _closed_register_notice(payload: dict, normalized: str, compact: str) -> boo
     )
     closed_re = _compile_pattern(config.get("closed_register_pattern"), re.I)
     exhausted_re = _compile_pattern(config.get("exhausted_register_pattern"), re.I)
-    open_states = {
-        str(value).strip().lower()
-        for value in (config.get("open_registration_states") or [])
-    }
     closed_states = {
         str(value).strip().lower()
         for value in (config.get("closed_registration_states") or [])
@@ -410,8 +406,6 @@ def _closed_register_notice(payload: dict, normalized: str, compact: str) -> boo
         value = str(status_match.group("state") or "").strip().lower()
         if value in closed_states:
             return True
-        if value in open_states:
-            return False
 
     if not any(
         marker in normalized or marker in compact

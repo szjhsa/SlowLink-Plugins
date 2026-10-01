@@ -1,4 +1,6 @@
 import importlib.util
+import json
+import re
 import sys
 import types
 import unittest
@@ -111,6 +113,45 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
         self.assertIn('(identity or "").partition(":")', code_source)
         self.assertIn('"identity_key_prefix": "dedup:identity:"', storage_source)
         self.assertIn('"dedup:identity:*"', storage_source)
+
+    def test_exhausted_capacity_overrides_open_registration_status(self):
+        rules = json.loads(
+            (ROOT / "plugins" / "builtin" / "rules.json").read_text(
+                encoding="utf-8-sig"
+            )
+        )
+        config = rules["matcher"]
+        text = (
+            "🃏当前开注状态：True\n"
+            "🪢商店开放状态：True\n"
+            "🎗️当前允许注册人数：2300\n"
+            "🎟️已注册人数：2264\n"
+            "🚨被禁用人数：0\n"
+            "🎫剩余可注册人数：0"
+        )
+        compact = re.sub(r"\s+", "", text)
+
+        result = self.hooks.analyze_match_guards(
+            {"text": text, "compact": compact, "config": config}
+        )
+
+        self.assertTrue(result["closed_register_notice"])
+
+    def test_open_status_with_remaining_capacity_is_not_exhausted(self):
+        rules = json.loads(
+            (ROOT / "plugins" / "builtin" / "rules.json").read_text(
+                encoding="utf-8-sig"
+            )
+        )
+        config = rules["matcher"]
+        text = "当前开注状态：True\n剩余可注册人数：36"
+        compact = re.sub(r"\s+", "", text)
+
+        result = self.hooks.analyze_match_guards(
+            {"text": text, "compact": compact, "config": config}
+        )
+
+        self.assertFalse(result["closed_register_notice"])
 
 
 if __name__ == "__main__":
