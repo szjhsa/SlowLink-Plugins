@@ -64,6 +64,22 @@ def validate_plugin(plugin_id: str) -> dict:
             raise ValueError(f"invalid code_identity.scope_regex: {exc}") from exc
         if not {"scope", "suffix"}.issubset(compiled.groupindex):
             raise ValueError("code_identity.scope_regex requires scope and suffix groups")
+        extract_patterns = code_identity.get("extract_patterns", [])
+        if not isinstance(extract_patterns, list):
+            raise ValueError("code_identity.extract_patterns must be a list")
+        for index, pattern in enumerate(extract_patterns):
+            if not isinstance(pattern, str) or not pattern.strip():
+                raise ValueError(f"invalid code_identity.extract_patterns: {index}")
+            try:
+                compiled_pattern = re.compile(pattern)
+            except re.error as exc:
+                raise ValueError(
+                    f"invalid code_identity.extract_patterns {index}: {exc}"
+                ) from exc
+            if "code" not in compiled_pattern.groupindex:
+                raise ValueError(
+                    f"code_identity.extract_patterns {index} requires code group"
+                )
     generator_types = rules["rule_generator"].get("types")
     if not isinstance(generator_types, dict):
         raise ValueError("rule_generator.types must be an object")
