@@ -35,6 +35,16 @@ def validate_plugin(plugin_id: str) -> dict:
     for section in ("matcher", "code_rules", "dedup", "rule_types", "rule_generator", "flow"):
         if not isinstance(rules.get(section), dict):
             raise ValueError(f"rules.json missing section: {section}")
+    dynamic_patterns = rules["dedup"].get("dynamic_line_patterns", [])
+    if not isinstance(dynamic_patterns, list):
+        raise ValueError("dedup.dynamic_line_patterns must be a list")
+    for index, pattern in enumerate(dynamic_patterns):
+        if not isinstance(pattern, str) or not pattern.strip():
+            raise ValueError(f"invalid dynamic line pattern: {index}")
+        try:
+            re.compile(pattern)
+        except re.error as exc:
+            raise ValueError(f"invalid dynamic line pattern {index}: {exc}") from exc
     generator_types = rules["rule_generator"].get("types")
     if not isinstance(generator_types, dict):
         raise ValueError("rule_generator.types must be an object")
