@@ -111,8 +111,12 @@ def build_zip(plugin_id: str, manifest: dict) -> Path:
     base = PLUGINS / plugin_id
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         for path in sorted(base.rglob("*")):
-            if path.is_file():
-                zf.write(path, f"plugins/{plugin_id}/{path.relative_to(base).as_posix()}")
+            if not path.is_file():
+                continue
+            relative = path.relative_to(base)
+            if "__pycache__" in relative.parts or path.suffix.lower() in {".pyc", ".pyo"}:
+                continue
+            zf.write(path, f"plugins/{plugin_id}/{relative.as_posix()}")
     out.write_bytes(buf.getvalue())
     return out
 

@@ -16,7 +16,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: python scripts/build_plugin.py --check
+      - run: |
+          python scripts/build_plugin.py --check
+          python -m unittest discover -s scripts -p 'test_*.py'
 
   release:
     needs: test
