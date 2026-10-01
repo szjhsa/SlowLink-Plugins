@@ -33,5 +33,10 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME}"
           NOTES="$(sed -n '/^## \[/,/^## \[/p' CHANGELOG.md | head -n -1)"
-          gh release create "$TAG" dist/*.zip dist/SHA256SUMS.txt \
-            --title "$TAG" --notes "$NOTES"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/*.zip dist/SHA256SUMS.txt --clobber
+            gh release edit "$TAG" --title "$TAG" --notes "$NOTES"
+          else
+            gh release create "$TAG" dist/*.zip dist/SHA256SUMS.txt \
+              --title "$TAG" --notes "$NOTES"
+          fi
