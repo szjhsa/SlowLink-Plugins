@@ -63,7 +63,8 @@ BUSINESS_INSTRUCTION_RE = _regex.compile(
 LOTTERY_RESULT_RE = _regex.compile(
     r"(?m)^[^\n]*(?:"
     r"到时间啦[^\n]*开奖|开奖啦|开奖结果|已开奖|开奖公告|"
-    r"中奖信息|中奖名单|中奖名单如下|恭喜中奖"
+    r"中奖信息|中奖名单|中奖名单如下|中奖群友|"
+    r"幸运名单公布|获奖名单|恭喜以下中奖|恭喜中奖"
     r")[^\n]*$"
 )
 

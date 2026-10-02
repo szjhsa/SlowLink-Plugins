@@ -157,22 +157,33 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
         self.assertFalse(result["closed_register_notice"])
 
     def test_lottery_result_message_does_not_trigger(self):
-        text = (
-            "到时间啦！！开奖~\n\n"
-            "抽奖信息\n"
-            "  抽奖 ID：7c7e5526-b5e1-497a-98a0-e5f01a7a732f\n"
-            "  创建者：磕巴 白菜\n"
-            "  当前参与人数：1345\n\n"
-            "中奖信息\n"
-            "注册码&续期码 * 5：\n"
-            "  ▸ 木 ᶠᵒʳᵉˢᵗ"
+        samples = (
+            (
+                "到时间啦！！开奖~\n\n"
+                "抽奖信息\n"
+                "  抽奖 ID：7c7e5526-b5e1-497a-98a0-e5f01a7a732f\n"
+                "  创建者：磕巴 白菜\n"
+                "  当前参与人数：1345\n\n"
+                "中奖信息\n"
+                "注册码&续期码 * 5：\n"
+                "  ▸ 木 ᶠᵒʳᵉˢᵗ"
+            ),
+            (
+                "🎊 【XP Chat & Gary's Club联合抽奖 · 幸运名单公布】\n"
+                "🎁 奖品内容：兑换码 × 10 份\n"
+                "👥 总参与：10 位幸运群友诞生\n"
+                "🏆 恭喜以下中奖群友：\n"
+                "1. @king_GDone"
+            ),
         )
 
-        result = self.match(text)
-        self.assertIsInstance(result, dict)
-        self.assertFalse(result.get("matched"))
-        self.assertTrue(result.get("suppressed"))
-        self.assertEqual(result.get("reason"), "lottery_result")
+        for text in samples:
+            with self.subTest(text=text):
+                result = self.match(text)
+                self.assertIsInstance(result, dict)
+                self.assertFalse(result.get("matched"))
+                self.assertTrue(result.get("suppressed"))
+                self.assertEqual(result.get("reason"), "lottery_result")
 
     def test_lottery_creation_and_open_event_still_trigger(self):
         samples = (
