@@ -68,6 +68,11 @@ LOTTERY_RESULT_RE = _regex.compile(
     r")[^\n]*$"
 )
 
+CK_CANDIDATE_RE = _regex.compile(
+    r"(?<![A-Za-z0-9])CK([^\s]{12})"
+    r"(?=$|\s|[，。！？？；：、】]|[,.;:)\]}>`~*](?![A-Za-z0-9_-]))"
+)
+
 REGISTRATION_EVENT_CONTEXT_RE = _regex.compile(
     r"(?m)^[ \t]*(?:"
     r"(?:[🎫🎟️🎭🤖]\s*)?(?:总注册限制|注册限制|已注册人数|注册人数|"
@@ -531,6 +536,22 @@ def match_plugin_event(payload):
             return {}
 
     detail = _code_detail()
+    ck_candidates = []
+    for candidate in (original, normalized, compact):
+        ck_candidates.extend(
+            match.group(1)
+            for match in CK_CANDIDATE_RE.finditer(candidate)
+        )
+    if ck_candidates and all(
+        sum(ch.isascii() and ch.isalnum() for ch in suffix) < 4
+        for suffix in ck_candidates
+    ):
+        return {
+            "matched": False,
+            "suppressed": True,
+            "reason": "weak_ck_code",
+        }
+
     is_instruction_text = any(
         BUSINESS_INSTRUCTION_RE.search(candidate)
         for candidate in (original, normalized, compact)

@@ -117,6 +117,24 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
         self.assertIn('"identity_key_prefix": "dedup:identity:"', storage_source)
         self.assertIn('"dedup:identity:*"', storage_source)
 
+    def test_ck_sentence_without_alphanumeric_code_is_suppressed(self):
+        result = self.match("CK也一起,是高中生吧?传闻")
+
+        self.assertIsInstance(result, dict)
+        self.assertFalse(result.get("matched"))
+        self.assertTrue(result.get("suppressed"))
+        self.assertEqual(result.get("reason"), "weak_ck_code")
+
+    def test_ck_guess_code_with_chinese_and_symbols_still_matches(self):
+        match = self.hooks.CK_CANDIDATE_RE.search("CK中文*AB猜码12345")
+
+        self.assertIsNotNone(match)
+        suffix = match.group(1)
+        self.assertGreaterEqual(
+            sum(ch.isascii() and ch.isalnum() for ch in suffix),
+            4,
+        )
+
     def test_exhausted_capacity_overrides_open_registration_status(self):
         rules = json.loads(
             (ROOT / "plugins" / "builtin" / "rules.json").read_text(
