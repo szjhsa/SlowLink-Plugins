@@ -60,6 +60,13 @@ BUSINESS_INSTRUCTION_RE = _regex.compile(
     r"表示(?:已)?(?:开放|关闭|开启|结束|开始|成功)|意思是|意味着)"
 )
 
+LOTTERY_RESULT_RE = _regex.compile(
+    r"(?m)^[^\n]*(?:"
+    r"到时间啦[^\n]*开奖|开奖啦|开奖结果|已开奖|开奖公告|"
+    r"中奖信息|中奖名单|中奖名单如下|恭喜中奖"
+    r")[^\n]*$"
+)
+
 REGISTRATION_EVENT_CONTEXT_RE = _regex.compile(
     r"(?m)^[ \t]*(?:"
     r"(?:[🎫🎟️🎭🤖]\s*)?(?:总注册限制|注册限制|已注册人数|注册人数|"
@@ -502,6 +509,11 @@ def match_plugin_event(payload):
     original = str(payload.get("text") or "")
     normalized = str(payload.get("normalized") or original)
     compact = str(payload.get("compact") or re.sub(r"\s+", "", normalized))
+    if any(
+        LOTTERY_RESULT_RE.search(candidate)
+        for candidate in (original, normalized, compact)
+    ):
+        return None
 
     def _code_detail():
         try:

@@ -153,6 +153,42 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
 
         self.assertFalse(result["closed_register_notice"])
 
+    def test_lottery_result_message_does_not_trigger(self):
+        text = (
+            "到时间啦！！开奖~\n\n"
+            "抽奖信息\n"
+            "  抽奖 ID：7c7e5526-b5e1-497a-98a0-e5f01a7a732f\n"
+            "  创建者：磕巴 白菜\n"
+            "  当前参与人数：1345\n\n"
+            "中奖信息\n"
+            "注册码&续期码 * 5：\n"
+            "  ▸ 木 ᶠᵒʳᵉˢᵗ"
+        )
+
+        self.assertIsNone(self.match(text))
+
+    def test_lottery_creation_and_open_event_still_trigger(self):
+        samples = (
+            (
+                "新的抽奖已经创建\n"
+                "抽奖信息\n"
+                "抽奖 ID：7c7e5526-b5e1-497a-98a0-e5f01a7a732f\n"
+                "开奖时间：2026-10-02 20:00"
+            ),
+            (
+                "🎁 抽奖活动已开始！\n"
+                "🎁 奖品：\n"
+                "  ▸ 月卡 x1\n"
+                "⏰ 截止时间：2026-10-02 20:00"
+            ),
+        )
+
+        for text in samples:
+            with self.subTest(text=text):
+                result = self.match(text)
+                self.assertIsInstance(result, dict)
+                self.assertEqual(result.get("rule_type"), "lottery")
+
 
 if __name__ == "__main__":
     unittest.main()
