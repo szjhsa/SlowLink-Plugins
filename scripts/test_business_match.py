@@ -69,7 +69,10 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
             "教程：\n📝 开放注册中",
         ):
             with self.subTest(text=text):
-                self.assertIsNone(self.match(text))
+                result = self.match(text)
+                self.assertIsInstance(result, dict)
+                self.assertFalse(result.get("matched"))
+                self.assertTrue(result.get("suppressed"))
 
     def test_structural_event_fields_still_trigger(self):
         samples = (
@@ -165,7 +168,11 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
             "  ▸ 木 ᶠᵒʳᵉˢᵗ"
         )
 
-        self.assertIsNone(self.match(text))
+        result = self.match(text)
+        self.assertIsInstance(result, dict)
+        self.assertFalse(result.get("matched"))
+        self.assertTrue(result.get("suppressed"))
+        self.assertEqual(result.get("reason"), "lottery_result")
 
     def test_lottery_creation_and_open_event_still_trigger(self):
         samples = (

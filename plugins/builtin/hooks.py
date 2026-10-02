@@ -513,7 +513,11 @@ def match_plugin_event(payload):
         LOTTERY_RESULT_RE.search(candidate)
         for candidate in (original, normalized, compact)
     ):
-        return None
+        return {
+            "matched": False,
+            "suppressed": True,
+            "reason": "lottery_result",
+        }
 
     def _code_detail():
         try:
@@ -526,6 +530,28 @@ def match_plugin_event(payload):
             return {}
 
     detail = _code_detail()
+    is_instruction_text = any(
+        BUSINESS_INSTRUCTION_RE.search(candidate)
+        for candidate in (original, normalized, compact)
+    )
+    if is_instruction_text and not (
+        str(detail.get("code") or "")
+        or any(
+            LOTTERY_EVENT_CONTEXT_RE.search(candidate)
+            for candidate in (original, normalized, compact)
+        )
+        or any(
+            REGISTRATION_EVENT_CONTEXT_RE.search(candidate)
+            for candidate in (original, normalized, compact)
+        )
+    ):
+        return {
+            "matched": False,
+            "suppressed": True,
+            "reason": "instruction_text",
+        }
+
+    suppressed = False
     for rule, compiled in _compiled_business_match_rules():
         for candidate in (original, normalized, compact):
             try:
@@ -539,17 +565,21 @@ def match_plugin_event(payload):
                     continue
                 is_instruction = bool(BUSINESS_INSTRUCTION_RE.search(candidate))
                 if rule.get("reject_in_instruction") and is_instruction:
+                    suppressed = True
                     continue
                 if (
                     rule.get("requires_lottery_context")
                     and not LOTTERY_EVENT_CONTEXT_RE.search(candidate)
                 ):
+                    suppressed = True
                     continue
                 if is_instruction:
                     topic = str(rule.get("guard_topic") or "")
                     if topic == "lottery" and not LOTTERY_EVENT_CONTEXT_RE.search(candidate):
+                        suppressed = True
                         continue
                     if topic == "registration" and not REGISTRATION_EVENT_CONTEXT_RE.search(candidate):
+                        suppressed = True
                         continue
                 return {
                     "matched": True,
@@ -559,6 +589,13 @@ def match_plugin_event(payload):
                     "pattern": str(rule.get("pattern") or ""),
                     "code_detail": detail,
                 }
+
+    if suppressed:
+        return {
+            "matched": False,
+            "suppressed": True,
+            "reason": "instruction_text",
+        }
 
     identity = str(detail.get("identity") or "") if isinstance(detail, dict) else ""
     if (
