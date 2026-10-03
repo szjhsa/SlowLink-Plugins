@@ -74,6 +74,9 @@ CK_CANDIDATE_RE = _regex.compile(
     _regex.I,
 )
 CK_DOMAIN_RE = _regex.compile(r"(?i)^\.[a-z0-9-]+\.[a-z]{2,}$")
+CK_INVALID_SUFFIX_RE = _regex.compile(
+    r"(?:已封禁|封禁|已使用|已过期|失效|已兑换|已领取|已注册)"
+)
 
 REGISTRATION_EVENT_CONTEXT_RE = _regex.compile(
     r"(?m)^[ \t]*(?:"
@@ -550,6 +553,7 @@ def match_plugin_event(payload):
         (
             sum(ch.isascii() and ch.isalnum() for ch in suffix) < 4
             or bool(CK_DOMAIN_RE.fullmatch(suffix))
+            or bool(CK_INVALID_SUFFIX_RE.search(suffix))
             or in_url
         )
         for suffix, in_url in ck_candidates

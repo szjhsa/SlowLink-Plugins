@@ -139,6 +139,14 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
                 self.assertTrue(result.get("suppressed"))
                 self.assertEqual(result.get("reason"), "weak_ck_code")
 
+    def test_ck_code_with_status_suffix_is_suppressed(self):
+        result = self.match("ck126t7v96,已封禁")
+
+        self.assertIsInstance(result, dict)
+        self.assertFalse(result.get("matched"))
+        self.assertTrue(result.get("suppressed"))
+        self.assertEqual(result.get("reason"), "weak_ck_code")
+
     def test_ck_guess_code_with_chinese_and_symbols_still_matches(self):
         match = self.hooks.CK_CANDIDATE_RE.search("CK中文*AB猜码12345")
 
