@@ -70,8 +70,10 @@ LOTTERY_RESULT_RE = _regex.compile(
 
 CK_CANDIDATE_RE = _regex.compile(
     r"(?<![A-Za-z0-9])CK([^\s]{12})"
-    r"(?=$|\s|[，。！？？；：、】]|[,.;:)\]}>`~*](?![A-Za-z0-9_-]))"
+    r"(?=$|\s|[，。！？？；：、】]|[,.;:)\]}>`~*](?![A-Za-z0-9_-]))",
+    _regex.I,
 )
+CK_DOMAIN_RE = _regex.compile(r"(?i)^\.[a-z0-9-]+\.[a-z]{2,}$")
 
 REGISTRATION_EVENT_CONTEXT_RE = _regex.compile(
     r"(?m)^[ \t]*(?:"
@@ -538,13 +540,19 @@ def match_plugin_event(payload):
     detail = _code_detail()
     ck_candidates = []
     for candidate in (original, normalized, compact):
-        ck_candidates.extend(
-            match.group(1)
-            for match in CK_CANDIDATE_RE.finditer(candidate)
-        )
+        for match in CK_CANDIDATE_RE.finditer(candidate):
+            prefix = candidate[max(0, match.start() - 8):match.start()]
+            ck_candidates.append((
+                match.group(1),
+                "://" in prefix,
+            ))
     if ck_candidates and all(
-        sum(ch.isascii() and ch.isalnum() for ch in suffix) < 4
-        for suffix in ck_candidates
+        (
+            sum(ch.isascii() and ch.isalnum() for ch in suffix) < 4
+            or bool(CK_DOMAIN_RE.fullmatch(suffix))
+            or in_url
+        )
+        for suffix, in_url in ck_candidates
     ):
         return {
             "matched": False,

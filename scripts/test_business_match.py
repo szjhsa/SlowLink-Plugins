@@ -125,6 +125,20 @@ class BuiltinBusinessMatchTests(unittest.TestCase):
         self.assertTrue(result.get("suppressed"))
         self.assertEqual(result.get("reason"), "weak_ck_code")
 
+    def test_ck_domain_or_url_is_suppressed(self):
+        samples = (
+            "打开 https://ck.embyhod.com 上传 Cookie",
+            "ck.embyhod.com",
+        )
+
+        for text in samples:
+            with self.subTest(text=text):
+                result = self.match(text)
+                self.assertIsInstance(result, dict)
+                self.assertFalse(result.get("matched"))
+                self.assertTrue(result.get("suppressed"))
+                self.assertEqual(result.get("reason"), "weak_ck_code")
+
     def test_ck_guess_code_with_chinese_and_symbols_still_matches(self):
         match = self.hooks.CK_CANDIDATE_RE.search("CK中文*AB猜码12345")
 
